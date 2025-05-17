@@ -3,5 +3,67 @@
 # Purpose: Clean fandango_score_comparison.csv and repopulate 
 
 library(readr)
+library(dplyr)
+library(writexl)
 fandango_score_comparison <- read_csv("fandango_score_comparison.csv")
 
+fandango_score_comparison <- fandango_score_comparison %>%
+  filter(Metacritic_user_vote_count > 30, IMDB_user_vote_count > 30)
+
+# Select only specific columns for visualization
+data <- fandango_score_comparison %>%
+  select(FILM, Fandango_Stars, IMDB_norm_round, RT_norm_round, Metacritic_norm_round, Metacritic_user_norm_round, RT_user_norm_round) %>%
+  rename(
+    Film = FILM,
+    Fandango_Rating = Fandango_Stars,
+    IMDB_Rating = IMDB_norm_round,
+    RT_Rating = RT_norm_round,
+    Metacritic_Rating = Metacritic_norm_round,
+    Metacritic_User_Rating = Metacritic_user_norm_round,
+    RT_User_Rating = RT_user_norm_round
+  )
+
+# Calculate distributions
+fandango_distribution <- data %>%
+  group_by(Fandango_Rating) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  mutate(Percent = Count / sum(Count) * 100) %>% mutate(Source = "Fandango")
+
+IMDB_distribution <- data %>%
+  group_by(IMDB_Rating) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  mutate(Percent = Count / sum(Count) * 100) %>% mutate(Source = "IMDB")
+
+RT_distribution <- data %>%
+  group_by(RT_Rating) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  mutate(Percent = Count / sum(Count) * 100) %>% mutate(Source = "Rotten Tomatoes")
+
+Metacritic_distribution <- data %>%
+  group_by(Metacritic_Rating) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  mutate(Percent = Count / sum(Count) * 100) %>% mutate(Source = "Metacritic")
+
+Metacritic_user_distribution <- data %>%
+  group_by(Metacritic_User_Rating) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  mutate(Percent = Count / sum(Count) * 100) %>% mutate(Source = "Metacritic User")
+
+RT_user_distribution <- data %>%
+  group_by(RT_User_Rating) %>%
+  summarise(Count = n(), .groups = "drop") %>%
+  mutate(Percent = Count / sum(Count) * 100) %>% mutate(Source = "Rotten Tomatoes User")
+
+# Rename rating columns to the same name so we can bind rows
+fandango_distribution <- fandango_distribution %>% rename(Rating = Fandango_Rating)
+IMDB_distribution <- IMDB_distribution %>% rename(Rating = IMDB_Rating)
+RT_distribution <- RT_distribution %>% rename(Rating = RT_Rating)
+Metacritic_distribution <- Metacritic_distribution %>% rename(Rating = Metacritic_Rating)
+RT_user_distribution <- RT_user_distribution %>% rename(Rating = RT_User_Rating)
+Metacritic_user_distribution <- Metacritic_user_distribution %>% rename(Rating = Metacritic_User_Rating)
+
+# Combine into one dataframe
+final_data <- bind_rows(fandango_distribution, IMDB_distribution, RT_distribution, Metacritic_distribution, Metacritic_user_distribution, RT_user_distribution)
+final_data$Source <- factor(combined_distribution$Source)
+
+write_xlsx(final_data, "final_data.xlsx")
