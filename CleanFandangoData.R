@@ -6,6 +6,8 @@ library(readr)
 library(dplyr)
 library(writexl)
 
+#setwd("C:/Users/yanni/Documents/GitHub/Fandango_Loves_Movies")
+
 fandango_score_comparison <- read_csv("fandango_score_comparison.csv")
 
 # Fix deceptive data issue
@@ -24,6 +26,10 @@ movie_ratings <- fandango_score_comparison %>%
     Metacritic_User_Rating = Metacritic_user_norm_round,
     RT_User_Rating = RT_user_norm_round
   )
+
+# Remove the year from the movie names
+movie_ratings <- movie_ratings %>% mutate(Film = gsub('\\(2015)', '', Film), 
+                                          Film = gsub('\\(2014)', '', Film) )
 
 # Calculate distributions
 fandango_distribution <- movie_ratings %>%

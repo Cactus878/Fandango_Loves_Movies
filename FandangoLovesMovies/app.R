@@ -1,11 +1,7 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    https://shiny.posit.co/
-#
+# Created: 14/05/2025 
+# Creator: Yanni Karlaftis
+# Purpose: Display the Fandango Loves Movie visual, enhance the original,
+# add user interaction and improve the graphs insight.
 
 library(shiny)
 library(dplyr)
@@ -14,29 +10,33 @@ library(ggplot2)
 library(readxl) 
 
 data <- read_excel("final_data.xlsx")
-movie_ratings <- read_excel("movie_ratings.xlsx")
 
+movie_ratings <- read_excel("movie_ratings.xlsx")
 
 # UI 
 ui <- page_sidebar(
   title = "Fandango Loves Movies",
   sidebar = sidebar(
     selectInput(
-    "var",
+    "movie",
     label = "Choose a movie to display",
     choices = movie_ratings$Film,
-    selected = NULL),
+    selected = NULL)
   ),
   card(
     card_header("Normalized ratings distribution of 113 films in theaters in 2015 that had 30+ reviews."),
     mainPanel(
       plotOutput("ggplot", height = "600px", width = "100%")  # full width of main panel
     )
-  )
+  ),
+  textOutput("selected_movie")
 )
 
 # Server
 server <- function(input, output) {
+  output$selected_movie <- renderText({
+    paste("You have selected - ", input$movie)
+  })
   output$ggplot <- renderPlot({
     ggplot(data, aes(x = Rating, y = Percent, fill = Source)) +
       geom_col(show.legend = FALSE) +
@@ -51,11 +51,12 @@ server <- function(input, output) {
       scale_fill_manual(values = c(
         "Fandango" = "#d55e00",    
         "Rotten Tomatoes" = "#e69f00",  
-        "IMDB" = "#f0e442",        
-        "Metacritic" = "#0072b2" ,
+        "IMDB" = "#0072b2",        
+        "Metacritic" = "#f0e442" ,
         "Rotten Tomatoes User" = "#009e73",
         "Metacritic User" = "#cc79a7"
       ))
+      
   })
 }
 
