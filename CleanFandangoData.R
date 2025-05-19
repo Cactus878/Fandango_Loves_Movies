@@ -74,6 +74,7 @@ Metacritic_user_distribution <- Metacritic_user_distribution %>% rename(Rating =
 final_data <- bind_rows(fandango_distribution, IMDB_distribution, RT_distribution, Metacritic_distribution, Metacritic_user_distribution, RT_user_distribution)
 final_data$Source <- factor(final_data$Source)
 
+# Create new files for app
 write_xlsx(movie_ratings, "movie_ratings.xlsx")
 
 write_xlsx(final_data, "final_data.xlsx")

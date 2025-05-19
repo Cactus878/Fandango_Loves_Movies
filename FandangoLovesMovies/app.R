@@ -8,6 +8,7 @@ library(dplyr)
 library(bslib)
 library(ggplot2)
 library(readxl) 
+library(tidyr)
 
 data <- read_excel("final_data.xlsx")
 
@@ -34,9 +35,28 @@ ui <- page_sidebar(
 
 # Server
 server <- function(input, output) {
+  
+  selected_movie_data <- reactive({
+    movie_ratings %>%
+      filter(Film == input$movie) %>%
+      pivot_longer(
+        cols = c(Fandango_Rating, IMDB_Rating, RT_Rating, Metacritic_Rating, Metacritic_User_Rating, RT_User_Rating),
+        names_to = "Source",
+        values_to = "Rating"
+      ) %>% mutate(Source = case_when(
+        Source == "Fandango_Rating" ~ "Fandango",
+        Source == "IMDB_Rating" ~ "IMDB",
+        Source == "RT_Rating" ~ "Rotten Tomatoes",
+        Source == "Metacritic_Rating" ~ "Metacritic",
+        Source == "Metacritic_User_Rating" ~ "Metacritic User",
+        Source == "RT_User_Rating" ~ "Rotten Tomatoes User"
+      ))
+    })
+  
   output$selected_movie <- renderText({
     paste("You have selected - ", input$movie)
   })
+  
   output$ggplot <- renderPlot({
     ggplot(data, aes(x = Rating, y = Percent, fill = Source)) +
       geom_col(show.legend = FALSE) +
@@ -55,8 +75,9 @@ server <- function(input, output) {
         "Metacritic" = "#f0e442" ,
         "Rotten Tomatoes User" = "#009e73",
         "Metacritic User" = "#cc79a7"
-      ))
-      
+      )) +
+      # Solve insight issue
+      geom_point(data = selected_movie_data(), aes(x = Rating, y = 0), color = "black", size = 3, show.legend = FALSE)
   })
 }
 
