@@ -21,13 +21,42 @@ ui <- page_sidebar(
     selectInput(
     "movie",
     label = "Choose a movie to display",
-    choices = movie_ratings$Film,
+    choices = c("-Empty-", movie_ratings$Film),
     selected = NULL)
   ),
-  card(
-    card_header("Normalized ratings distribution of 113 films in theaters in 2015 that had 30+ reviews."),
-    mainPanel(
-      plotOutput("ggplot", height = "600px", width = "100%")  # full width of main panel
+  navset_tab( 
+    nav_panel("Visualisation", 
+      card(
+        card_header("Normalized ratings distribution of 113 films in theaters in 2015 that had 30+ reviews."),
+        mainPanel(
+          plotOutput("ggplot", height = "545px", width = "150%")  # full width of main panel
+        )
+      ) 
+    ),
+    nav_panel("Original Report",
+      fluidPage(
+        tags$p(
+          tags$strong("Title: "), 
+          "Be Suspicious Of Online Movie Ratings, Especially Fandango’s"
+        ),
+        tags$p(
+          tags$strong("Author: "), 
+          "Walt Hickey"
+        ),
+        tags$p(
+          tags$strong("Date: "), 
+          "Oct. 15, 2015"
+        ),
+        tags$p(
+          tags$strong("Link: "),
+          tags$a(href = "https://fivethirtyeight.com/features/fandango-movies-ratings/", 
+                 "View the original article", 
+                 target = "_blank")
+        )
+      )
+    ),
+    nav_panel("Raw Data",
+      tableOutput("movie_table_data")
     )
   ),
   textOutput("selected_movie")
@@ -53,9 +82,7 @@ server <- function(input, output) {
       ))
     })
   
-  output$selected_movie <- renderText({
-    paste("You have selected - ", input$movie)
-  })
+  output$movie_table_data <- renderTable(movie_ratings) 
   
   output$ggplot <- renderPlot({
     ggplot(data, aes(x = Rating, y = Percent, fill = Source)) +
@@ -77,7 +104,11 @@ server <- function(input, output) {
         "Metacritic User" = "#cc79a7"
       )) +
       # Solve insight issue
-      geom_point(data = selected_movie_data(), aes(x = Rating, y = 0), color = "black", size = 3, show.legend = FALSE)
+      geom_vline(
+        data = selected_movie_data(), 
+        aes(xintercept = Rating), 
+        color = "black", linetype = "dashed", size = 1
+      )
   })
 }
 
