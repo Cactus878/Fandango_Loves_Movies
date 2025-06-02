@@ -10,13 +10,13 @@ library(ggplot2)
 library(readxl) 
 library(tidyr)
 
-data <- read_excel("final_data.xlsx")
+data <- read_excel("final_data_normalized.xlsx")
 
-movie_ratings <- read_excel("movie_ratings.xlsx")
+movie_ratings <- read_excel("movie_ratings_normalized.xlsx")
 
 # UI 
 ui <- page_sidebar(
-  title = "Fandango Loves Movies",
+  title = "Be Suspicious Of Online Movie Ratings, Especially Fandango’s",
   sidebar = sidebar(
     selectInput(
     "movie",
@@ -26,12 +26,7 @@ ui <- page_sidebar(
   ),
   navset_tab( 
     nav_panel("Visualisation", 
-      card(
-        card_header("Normalized ratings distribution of 113 films in theaters in 2015 that had 30+ reviews."),
-        mainPanel(
-          plotOutput("ggplot", height = "545px", width = "150%")  # full width of main panel
-        )
-      ) 
+      plotOutput("ggplot", height = "545px", width = "100%")
     ),
     nav_panel("Original Report",
       fluidPage(
@@ -90,7 +85,9 @@ server <- function(input, output) {
       facet_wrap(~ Source) +
       labs(
         x = "Star Rating (0–5 Scale)",
-        y = "Percentage of Movies"
+        y = "Percentage of Movies",
+        title = "Fandango Loves Movies",
+        subtitle = "Normalized ratings distribution of 113 films in theaters in 2015 that had 30+ reviews."
       ) +
       scale_x_continuous(breaks = seq(0, 5, 0.5)) +
       theme(axis.text.x = element_text(angle = 90)) +
